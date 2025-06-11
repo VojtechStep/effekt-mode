@@ -41,14 +41,27 @@ the `effekt' executable."
   :group 'lsp-effekt
   :type 'string)
 
-(defcustom lsp-effekt-server-args '("--server")
-  "Arguments to the language server executable."
+(defun lsp-effekt--default-server-args ()
+  "Default function to construct arguments to the language server."
+  `("--server" "--backend" ,lsp-effekt-backend))
+
+(defcustom lsp-effekt-server-args #'lsp-effekt--default-server-args
+  "Arguments to the language server executable.
+Can be either a list of strings, or a function taking no arguments and
+returning a list of strings. Note that for now, the built-in language
+server only allows setting the backend via the `--backend' flag and not
+`initializationOptions', so the argument list should reflect the current
+value of `lsp-effekt-backend'."
   :group 'lsp-effekt
-  :type '(repeat string))
+  :type '(choice (repeat string)
+                 (function)))
 
 (defun lsp-effekt--server-command ()
   "The full server command, concatenating the executable path with the arguments."
-  (cons lsp-effekt-server-path lsp-effekt-server-args))
+  (cons lsp-effekt-server-path
+        (if (functionp lsp-effekt-server-args)
+            (funcall lsp-effekt-server-args)
+          lsp-effekt-server-args)))
 
 ;; TODO:
 ;; effekt.lib
