@@ -74,11 +74,10 @@ value of `lsp-effekt-backend'."
   "Effekt backend."
   :group 'lsp-effekt
   :type '(choice (const :tag "JavaScript" "js")
+                 (const :tag "JavaScript (web)" "js-web")
                  (const :tag "LLVM" "llvm")
                  (const :tag "Chez Scheme (monadic)" "chez-monadic")
-                 (const :tag "Chez Scheme (call/cc)" "chez-callcc")
-                 (const :tag "Chez Scheme (lifted)" "chez-lift")
-                 (const :tag "MLton" "ml"))
+                 (const :tag "Chez Scheme (call/cc)" "chez-callcc"))
   :lsp-path "effekt.backend")
 
 (lsp-defcustom lsp-effekt-show-explanations t
