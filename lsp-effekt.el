@@ -28,40 +28,10 @@
 ;;; Code:
 
 (require 'lsp-mode)
-(require 'ht)
 
 (defgroup lsp-effekt nil
   "Customization group for `lsp-effekt'."
   :group 'lsp-mode)
-
-(defcustom lsp-effekt-server-path "effekt"
-  "The language server executable path.
-Non-path values are looked up in $PATH. Usually this variable points to
-the `effekt' executable."
-  :group 'lsp-effekt
-  :type 'string)
-
-(defun lsp-effekt--default-server-args ()
-  "Default function to construct arguments to the language server."
-  `("--server" "--backend" ,lsp-effekt-backend))
-
-(defcustom lsp-effekt-server-args #'lsp-effekt--default-server-args
-  "Arguments to the language server executable.
-Can be either a list of strings, or a function taking no arguments and
-returning a list of strings. Note that for now, the built-in language
-server only allows setting the backend via the `--backend' flag and not
-`initializationOptions', so the argument list should reflect the current
-value of `lsp-effekt-backend'."
-  :group 'lsp-effekt
-  :type '(choice (repeat string)
-                 (function)))
-
-(defun lsp-effekt--server-command ()
-  "The full server command, concatenating the executable path with the arguments."
-  (cons lsp-effekt-server-path
-        (if (functionp lsp-effekt-server-args)
-            (funcall lsp-effekt-server-args)
-          lsp-effekt-server-args)))
 
 ;; TODO:
 ;; effekt.lib
@@ -103,9 +73,34 @@ value of `lsp-effekt-backend'."
   :type 'boolean
   :lsp-path "effekt.showTree")
 
-(cl-defmethod lsp-clients-extract-signature-on-hover (_contents (_server-id (eql effekt)))
-  "Extract signature from Effekt's hover information CONTENTS."
-  "No way you get a type")
+(defcustom lsp-effekt-server-path "effekt"
+  "The language server executable path.
+Non-path values are looked up in $PATH. Usually this variable points to
+the `effekt' executable."
+  :group 'lsp-effekt
+  :type 'string)
+
+(defun lsp-effekt--default-server-args ()
+  "Default function to construct arguments to the language server."
+  `("--server" "--backend" ,lsp-effekt-backend))
+
+(defcustom lsp-effekt-server-args #'lsp-effekt--default-server-args
+  "Arguments to the language server executable.
+Can be either a list of strings, or a function taking no arguments and
+returning a list of strings. Note that for now, the built-in language
+server only allows setting the backend via the `--backend' flag and not
+`initializationOptions', so the argument list should reflect the current
+value of `lsp-effekt-backend'."
+  :group 'lsp-effekt
+  :type '(choice (repeat string)
+                 (function)))
+
+(defun lsp-effekt--server-command ()
+  "The full server command, concatenating the executable path with the arguments."
+  (cons lsp-effekt-server-path
+        (if (functionp lsp-effekt-server-args)
+            (funcall lsp-effekt-server-args)
+          lsp-effekt-server-args)))
 
 (defun lsp-effekt--show-ir-buffer (filename contents)
   "Render CONTENTS in a new buffer derived from FILENAME."
@@ -118,10 +113,13 @@ value of `lsp-effekt-backend'."
       (pop-to-buffer buf))))
 
 (defconst lsp-effekt--notification-handlers
-  '(("$/effekt/publishIR" .
-     (lambda (_w params)
-       (lsp-effekt--show-ir-buffer (ht-get params "filename")
-                                   (ht-get params "content"))))))
+  (let ((h (make-hash-table)))
+    (puthash "$/effekt/publishIR"
+             (lambda (_w params)
+               (lsp-effekt--show-ir-buffer (lsp-get params :filename)
+                                           (lsp-get params :content)))
+             h)
+    h))
 
 (with-eval-after-load 'lsp-mode
   (add-to-list 'lsp-language-id-configuration '(effekt-mode . "effekt"))
@@ -131,18 +129,15 @@ value of `lsp-effekt-backend'."
     :server-id 'effekt
     :language-id "effekt"
     :major-modes '(effekt-mode)
-    :notification-handlers (ht<-alist lsp-effekt--notification-handlers)
+    :notification-handlers lsp-effekt--notification-handlers
     :synchronize-sections '("effekt")
     ;; Send `{}' instead of `nil', otherwise the server crashes
     :initialization-options
     (lambda ()
       (let ((json-object-type 'hash-table))
-        (ht-get (lsp-configuration-section "effekt")
-                "effekt"
-                (ht-create)))))))
-
-;; (defun lsp-effekt-run-file ()
-;;     )
+        (gethash "effekt"
+                 (lsp-configuration-section "effekt")
+                 (make-hash-table)))))))
 
 (provide 'lsp-effekt)
 ;;; lsp-effekt.el ends here
