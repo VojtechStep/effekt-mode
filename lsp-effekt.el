@@ -108,7 +108,7 @@ value of `lsp-effekt-backend'."
   (let ((buf (get-buffer-create (concat "*effekt-ir:" filename "*")))
         (inhibit-read-only t))
     (with-current-buffer buf
-      (special-mode)
+      (effekt-ir-mode)
       (erase-buffer)
       (insert contents)
       (pop-to-buffer buf))))
@@ -157,6 +157,9 @@ value of `lsp-effekt-backend'."
                   (substring-no-properties val fence-content-start fence-end)))
        (lsp--render-string text "effekt")))
     (_ (lsp--render-element (lsp-get contents :value)))))
+
+(define-derived-mode effekt-ir-mode special-mode "effekt-ir"
+  "Major mode for viewing Effect IR buffers.")
 
 (provide 'lsp-effekt)
 ;;; lsp-effekt.el ends here
