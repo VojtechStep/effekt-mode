@@ -139,5 +139,23 @@ value of `lsp-effekt-backend'."
                  (lsp-configuration-section "effekt")
                  (make-hash-table)))))))
 
+(defconst lsp-effekt--fence-start "```effekt\n")
+
+(cl-defmethod lsp-clients-extract-signature-on-hover (contents (_server-id (eql effekt)))
+  "Extract signature from Effekt's hover information CONTENTS."
+  (pcase (lsp-get contents :kind)
+    ("plaintext" contents)
+    ("markdown"
+     (when-let* ((val (lsp-get contents :value))
+                 (fence-start (string-search lsp-effekt--fence-start val))
+                 (fence-content-start
+                  (+ (length lsp-effekt--fence-start) fence-start))
+                 (fence-end
+                  (string-search "```\n" val fence-content-start))
+                 (text
+                  (substring-no-properties val fence-content-start fence-end)))
+       (lsp--render-string text "effekt")))
+    (_ (lsp--render-element (lsp-get contents :value)))))
+
 (provide 'lsp-effekt)
 ;;; lsp-effekt.el ends here
