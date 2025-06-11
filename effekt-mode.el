@@ -24,6 +24,15 @@
 
 ;;; Code:
 
+(defgroup effekt-mode nil
+  "Customization group for `effekt-mode'."
+  :group 'languages)
+
+(defcustom effekt-path "effekt"
+  "The compiler executable path."
+  :group 'effekt-mode
+  :type 'string)
+
 (defconst effekt--syntax-table
   (let ((st (make-syntax-table)))
     (modify-syntax-entry ?/ "<" st)
@@ -36,6 +45,26 @@
     (modify-syntax-entry ?\] ")[" st)
     (modify-syntax-entry ?_ "_" st)
     st))
+
+;;;###autoload
+(defun effekt-run-file (&optional buffer)
+  "Run the program in BUFFER, or current buffer if nil."
+  (interactive)
+  (let* ((buffer (or buffer (current-buffer)))
+         (file (buffer-file-name buffer)))
+    (if (not file)
+        (message "Buffer %s does not correspond to a file!" buffer)
+      (when (buffer-modified-p buffer)
+        (save-buffer buffer))
+      (pop-to-buffer
+       (make-comint (concat "effekt: " (buffer-name buffer))
+                    effekt-path nil
+                    file)))))
+
+(defvar effekt-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-c C-c") #'effekt-run-file)
+    map))
 
 ;;;###autoload
 (define-derived-mode effekt-mode prog-mode "effekt"

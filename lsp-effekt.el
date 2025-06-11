@@ -27,6 +27,7 @@
 
 ;;; Code:
 
+(require 'effekt-mode)
 (require 'lsp-mode)
 
 (defgroup lsp-effekt nil
@@ -73,7 +74,7 @@
   :type 'boolean
   :lsp-path "effekt.showTree")
 
-(defcustom lsp-effekt-server-path "effekt"
+(defcustom lsp-effekt-server-path effekt-path
   "The language server executable path.
 Non-path values are looked up in $PATH. Usually this variable points to
 the `effekt' executable."
