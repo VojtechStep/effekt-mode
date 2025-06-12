@@ -106,15 +106,25 @@ value of `lsp-effekt-backend'."
 (defun lsp-effekt--show-ir-buffer (filename contents)
   "Render CONTENTS in a new buffer derived from FILENAME."
   (let ((buf (get-buffer-create (concat "*effekt-ir:" filename "*")))
-        (inhibit-read-only t))
+        (inhibit-read-only t)
+        (highlight-major-mode
+         (pcase lsp-effekt-backend
+           ((pred (string-prefix-p "js")) 'js-mode)
+           ((pred (string-prefix-p "chez")) 'scheme-mode))))
     (with-current-buffer buf
       (effekt-ir-mode)
       (erase-buffer)
-      (insert contents)
-      (pop-to-buffer buf))))
+      (insert
+       (if highlight-major-mode
+           (lsp--fontlock-with-mode contents highlight-major-mode)
+         contents))
+      (display-buffer
+       buf
+       '((display-buffer-reuse-window display-buffer-pop-up-frame)
+         ((inhibit-switch-frame . t)))))))
 
 (defconst lsp-effekt--notification-handlers
-  (let ((h (make-hash-table)))
+  (let ((h (make-hash-table :test #'equal)))
     (puthash "$/effekt/publishIR"
              (lambda (_w params)
                (lsp-effekt--show-ir-buffer (lsp-get params :filename)
