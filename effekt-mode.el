@@ -35,14 +35,17 @@
 
 (defconst effekt--syntax-table
   (let ((st (make-syntax-table)))
-    (modify-syntax-entry ?/ ". 12" st)
-    (modify-syntax-entry ?\n ">" st)
+    (modify-syntax-entry ?/ ". 124b" st)
+    (modify-syntax-entry ?* ". 23n" st)
+    (modify-syntax-entry ?\n "> b" st)
     (modify-syntax-entry ?\( "()" st)
     (modify-syntax-entry ?\) ")(" st)
     (modify-syntax-entry ?\{ "(}" st)
     (modify-syntax-entry ?\} "){" st)
     (modify-syntax-entry ?\[ "(]" st)
     (modify-syntax-entry ?\] ")[" st)
+    (modify-syntax-entry ?< "(>" st)
+    (modify-syntax-entry ?> ")<" st)
     (modify-syntax-entry ?_ "_" st)
     st))
 
@@ -72,6 +75,8 @@
   (set-syntax-table effekt--syntax-table)
   (setq comment-start "//"
         comment-start-skip "//+ *"
+        block-comment-start "/*"
+        block-comment-end "*/"
         tab-width 2))
 
 ;;;###autoload
