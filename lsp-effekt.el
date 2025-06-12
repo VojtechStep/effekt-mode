@@ -145,10 +145,7 @@ value of `lsp-effekt-backend'."
     ;; Send `{}' instead of `nil', otherwise the server crashes
     :initialization-options
     (lambda ()
-      (let ((json-object-type 'hash-table))
-        (gethash "effekt"
-                 (lsp-configuration-section "effekt")
-                 (make-hash-table)))))))
+      (lsp-configuration-section "effekt")))))
 
 (defconst lsp-effekt--fence-start "```effekt\n")
 
