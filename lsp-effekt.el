@@ -4,7 +4,7 @@
 
 ;; Copyright (C) 2025  Vojtěch Štěpančík
 
-;; Author: Vojtěch Štěpančík <adalbert@latte>
+;; Author: Vojtěch Štěpančík
 ;; Keywords: languages
 
 ;; This program is free software; you can redistribute it and/or modify
