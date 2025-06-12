@@ -1,6 +1,6 @@
 ;;; lsp-effekt.el --- LSP client for the Effekt language server  -*- lexical-binding: t; -*-
 
-;; Package-Requires ((emacs "30.1") (lsp-mode "3.0"))
+;; Package-Requires ((emacs "30.1") (lsp-mode "3.0") (magit-section "4.0"))
 
 ;; Copyright (C) 2025  Vojtěch Štěpančík
 
@@ -30,6 +30,8 @@
 (require 'effekt-mode)
 (require 'lsp-mode)
 
+(declare-function lsp-effekt--register-holes "lsp-effekt-holes")
+
 (defgroup lsp-effekt nil
   "Customization group for `lsp-effekt'."
   :group 'lsp-mode)
@@ -39,7 +41,6 @@
 ;; effekt.debug
 ;; effekt.inlayHints.captures
 ;; effekt.inlayHints.returnTypes
-;; effekt.showHoles
 
 (lsp-defcustom lsp-effekt-backend "js"
   "Effekt backend."
@@ -73,6 +74,12 @@
   :group 'lsp-effekt
   :type 'boolean
   :lsp-path "effekt.showTree")
+
+(lsp-defcustom lsp-effekt-show-holes nil
+  "Show a buffer with information about typed holes in the file."
+  :group 'lsp-effekt
+  :type 'boolean
+  :lsp-path "effekt.showHoles")
 
 (defcustom lsp-effekt-server-path effekt-path
   "The language server executable path.
@@ -129,6 +136,9 @@ value of `lsp-effekt-backend'."
              (lambda (_w params)
                (lsp-effekt--show-ir-buffer (lsp-get params :filename)
                                            (lsp-get params :content)))
+             h)
+    (puthash "$/effekt/publishHoles"
+             #'lsp-effekt--register-holes
              h)
     h))
 
