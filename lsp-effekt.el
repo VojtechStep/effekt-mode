@@ -161,19 +161,29 @@ value of `lsp-effekt-backend'."
 
 (cl-defmethod lsp-clients-extract-signature-on-hover (contents (_server-id (eql effekt)))
   "Extract signature from Effekt's hover information CONTENTS."
-  (pcase (lsp-get contents :kind)
-    ("plaintext" contents)
-    ("markdown"
-     (when-let* ((val (lsp-get contents :value))
-                 (fence-start (string-search lsp-effekt--fence-start val))
+  (let ((value (lsp-get contents :value)))
+    (pcase (lsp-get contents :kind)
+      ("plaintext" value)
+      ("markdown"
+       (if-let* ((fence-start (string-search lsp-effekt--fence-start value))
                  (fence-content-start
                   (+ (length lsp-effekt--fence-start) fence-start))
                  (fence-end
-                  (string-search "```\n" val fence-content-start))
+                  (string-search "```\n" value fence-content-start))
                  (text
-                  (substring-no-properties val fence-content-start fence-end)))
-       (lsp--render-string text "effekt")))
-    (_ (lsp--render-element (lsp-get contents :value)))))
+                  (substring-no-properties value fence-content-start fence-end)))
+           (lsp--render-string text "effekt")
+         ;; Fallback when there is no code fence, e.g. in hole hover info
+         (if (string-prefix-p " |" value)
+             ;; Special case the "| Outside | Inside |" table
+             (when-let* ((first-line-end (string-search "\n" value))
+                         (second-line-end
+                          (string-search "\n" value (+ 1 first-line-end)))
+                         (text
+                          (substring-no-properties value (+ 1 second-line-end))))
+               (lsp--render-element text))
+           (lsp--render-element value))))
+      (_ (lsp--render-element value)))))
 
 (define-derived-mode effekt-ir-mode special-mode "effekt-ir"
   "Major mode for viewing Effect IR buffers.")
