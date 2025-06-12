@@ -57,7 +57,7 @@
   :type 'boolean
   :lsp-path "effekt.showExplanations")
 
-(lsp-defcustom lsp-effekt-show-ir "source"
+(lsp-defcustom lsp-effekt-show-ir "none"
   "Display intermediate representation."
   :group 'lsp-effekt
   :type '(choice
